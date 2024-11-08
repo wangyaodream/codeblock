@@ -43,7 +43,6 @@ func (me _richtext) ui(w fyne.Window) {
 		richtext3, btn1)
 
 	w.SetContent(c)
-	w.Show()
 }
 
 func main() {
