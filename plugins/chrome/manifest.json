@@ -1,0 +1,18 @@
+{
+    "manifest_version": 3,
+    "name": "code block",
+    "description": "This extension will block the code",
+    "version": "1.0",
+    "icons": {
+      "48": "images/icon.png"
+    },
+    "content_scripts": [
+      {
+        "matches": [
+            "https://developer.chrome.com/docs/extensions/*",
+            "https://developer.chrome.com/docs/webstore/*"
+        ],
+        "js": ["scripts/content.js"]
+      }
+    ]
+  }
