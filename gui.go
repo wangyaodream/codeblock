@@ -14,5 +14,6 @@ func makeGUI() fyne.CanvasObject {
 	left := widget.NewLabel("Left")
 	right := widget.NewLabel("Right")
 	content := widget.NewLabel("Content")
+	content.Alignment = fyne.TextAlignCenter
 	return container.NewBorder(toolbar, nil, left, right, content)
 }
