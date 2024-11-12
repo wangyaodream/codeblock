@@ -1,3 +1,5 @@
+//go:generate fyne bundle -o bundled.go assets
+
 package main
 
 import (
@@ -17,4 +19,11 @@ func newTheme() fyne.Theme {
 
 func (t *fysionTheme) Color(name fyne.ThemeColorName, _ fyne.ThemeVariant) color.Color {
 	return t.Theme.Color(name, theme.VariantLight)
+}
+
+func (t *fysionTheme) Size(name fyne.ThemeSizeName) float32 {
+	if name == theme.SizeNameText {
+		return 12
+	}
+	return t.Theme.Size(name)
 }
