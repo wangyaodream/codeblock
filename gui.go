@@ -6,9 +6,15 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
+
+type gui struct {
+	win       fyne.Window
+	directory *widget.Label
+}
 
 func makeBanner() fyne.CanvasObject {
 	toolbar := widget.NewToolbar(
@@ -19,11 +25,13 @@ func makeBanner() fyne.CanvasObject {
 	return container.NewStack(toolbar, container.NewPadded(logo))
 }
 
-func makeGUI() fyne.CanvasObject {
+func (g *gui) makeGUI() fyne.CanvasObject {
 	top := makeBanner()
 	left := widget.NewLabel("Left")
 	right := widget.NewLabel("Right")
-	content := canvas.NewRectangle(color.Gray{Y: 0xee})
+
+	g.directory = widget.NewLabel("Welcome to codeblock!")
+	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), g.directory)
 	// return container.NewBorder(makeBanner(), nil, left, right, content)
 	dividers := [3]fyne.CanvasObject{
 		widget.NewSeparator(),
@@ -32,4 +40,19 @@ func makeGUI() fyne.CanvasObject {
 	}
 	objs := []fyne.CanvasObject{content, top, left, right, dividers[0], dividers[1], dividers[2]}
 	return container.New(newFysionLayout(top, left, right, content, dividers), objs...)
+}
+
+func (g *gui) openProject() {
+	dialog.ShowFolderOpen(func(dir fyne.ListableURI, err error) {
+		if err != nil {
+			dialog.ShowError(err, g.win)
+			return
+		}
+		if dir == nil {
+			return
+		}
+		name := dir.Name()
+		g.win.SetTitle("Current path:" + name)
+		g.directory.SetText(name)
+	}, g.win)
 }
