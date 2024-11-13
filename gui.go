@@ -42,7 +42,7 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 	return container.New(newFysionLayout(top, left, right, content, dividers), objs...)
 }
 
-func (g *gui) openProject() {
+func (g *gui) openProjectDialog() {
 	dialog.ShowFolderOpen(func(dir fyne.ListableURI, err error) {
 		if err != nil {
 			dialog.ShowError(err, g.win)
@@ -51,8 +51,12 @@ func (g *gui) openProject() {
 		if dir == nil {
 			return
 		}
-		name := dir.Name()
-		g.win.SetTitle("Current path:" + name)
-		g.directory.SetText(name)
+		g.openProject(dir)
 	}, g.win)
+}
+
+func (g *gui) openProject(dir fyne.ListableURI) {
+	name := dir.Name()
+	g.win.SetTitle("Current path:" + name)
+	g.directory.SetText(name)
 }
