@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/storage"
 )
 
@@ -23,10 +24,14 @@ func main() {
 	w := a.NewWindow("Hello")
 	w.Resize(fyne.Size{Width: 800, Height: 600})
 
-	ui := &gui{win: w}
+	ui := &gui{win: w, title: binding.NewString()}
 
 	w.SetContent(ui.makeGUI())
 	w.SetMainMenu(ui.makeMenu())
+	ui.title.AddListener(binding.NewDataListener(func() {
+		name, _ := ui.title.Get()
+		w.SetTitle("App:" + name)
+	}))
 
 	flag.Usage = func() {
 		fmt.Println("Usage: codeblock [project directory]")

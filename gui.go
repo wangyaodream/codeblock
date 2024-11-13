@@ -6,14 +6,15 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
 type gui struct {
-	win       fyne.Window
-	directory *widget.Label
+	win   fyne.Window
+	title binding.String
 }
 
 func makeBanner() fyne.CanvasObject {
@@ -30,8 +31,8 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 	left := widget.NewLabel("Left")
 	right := widget.NewLabel("Right")
 
-	g.directory = widget.NewLabel("Welcome to codeblock!")
-	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), g.directory)
+	directory := widget.NewLabelWithData(g.title)
+	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), directory)
 	// return container.NewBorder(makeBanner(), nil, left, right, content)
 	dividers := [3]fyne.CanvasObject{
 		widget.NewSeparator(),
@@ -57,6 +58,5 @@ func (g *gui) openProjectDialog() {
 
 func (g *gui) openProject(dir fyne.ListableURI) {
 	name := dir.Name()
-	g.win.SetTitle("Current path:" + name)
-	g.directory.SetText(name)
+	g.title.Set(name)
 }
