@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/wangyaodream/codeblock/internal/dialogs"
 )
 
 type gui struct {
@@ -59,4 +60,12 @@ func (g *gui) openProjectDialog() {
 func (g *gui) openProject(dir fyne.ListableURI) {
 	name := dir.Name()
 	g.title.Set(name)
+}
+
+func (g *gui) ShowCreate(win fyne.Window) {
+	home := widget.NewLabel(`Here you can create new project!
+Or open an existing project.`)
+
+	wizard := dialogs.NewWizard("create project", home)
+	wizard.Show(win)
 }

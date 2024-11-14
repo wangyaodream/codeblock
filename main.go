@@ -54,7 +54,7 @@ func main() {
 		ui.openProject(dir)
 
 	} else {
-		ui.openProjectDialog()
+		ui.ShowCreate(w)
 	}
 	w.ShowAndRun()
 }
