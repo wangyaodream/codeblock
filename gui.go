@@ -1,13 +1,16 @@
 package main
 
 import (
+	"errors"
 	"image/color"
+	"os"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/wangyaodream/codeblock/internal/dialogs"
@@ -62,6 +65,54 @@ func (g *gui) openProject(dir fyne.ListableURI) {
 	g.title.Set(name)
 }
 
+func (g *gui) makeCreateDetail(wizard *dialogs.Wizard) fyne.CanvasObject {
+	homeDir, _ := os.UserHomeDir()
+	parent := storage.NewFileURI(homeDir)
+	chosen, _ := storage.ListerForURI(parent)
+	name := widget.NewEntry()
+	name.Validator = func(in string) error {
+		if in == "" {
+			return errors.New("Project name is required")
+		}
+		return nil
+	}
+	var dir *widget.Button
+	dir = widget.NewButton(chosen.Name(), func() {
+		d := dialog.NewFolderOpen(func(l fyne.ListableURI, err error) {
+			if err != nil || l == nil {
+				return
+			}
+
+			chosen = l
+			dir.SetText(l.Name())
+
+		}, g.win)
+		d.SetLocation(chosen)
+		d.Show()
+	})
+
+	form := widget.NewForm(
+		widget.NewFormItem("Name", name),
+		widget.NewFormItem("Parent Directory", dir),
+	)
+	form.OnSubmit = func() {
+		if name.Text == "" {
+			return
+		}
+
+		// TODO - set up project
+		project, err := createProject(name.Text, chosen)
+		if err != nil {
+			dialog.ShowError(err, g.win)
+			// 这里return的目的是不让程序退出
+			return
+		}
+		wizard.Hide()
+		g.openProject(project)
+	}
+	return form
+}
+
 func (g *gui) ShowCreate(win fyne.Window) {
 	var wizard *dialogs.Wizard
 	intro := widget.NewLabel(`Here you can create new project!
@@ -72,8 +123,7 @@ Or open an existing project.`)
 		g.openProjectDialog()
 	})
 	create := widget.NewButton("Create Project", func() {
-		step2 := widget.NewLabel("step 2 content")
-		wizard.Push("Step 2", step2)
+		wizard.Push("Project Details", g.makeCreateDetail(wizard))
 	})
 	// 修改create按钮样式
 	create.Importance = widget.HighImportance
@@ -82,5 +132,5 @@ Or open an existing project.`)
 
 	wizard = dialogs.NewWizard("create project", home)
 	wizard.Show(win)
-	wizard.Resize(home.MinSize().AddWidthHeight(40, 80))
+	wizard.Resize(home.MinSize().AddWidthHeight(80, 80))
 }
