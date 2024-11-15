@@ -60,23 +60,27 @@ func (g *gui) openProjectDialog() {
 	}, g.win)
 }
 
+// 打开项目
 func (g *gui) openProject(dir fyne.ListableURI) {
 	name := dir.Name()
 	g.title.Set(name)
 }
 
+// 创建项目
 func (g *gui) makeCreateDetail(wizard *dialogs.Wizard) fyne.CanvasObject {
 	homeDir, _ := os.UserHomeDir()
 	parent := storage.NewFileURI(homeDir)
 	chosen, _ := storage.ListerForURI(parent)
 	name := widget.NewEntry()
+	// 项目名称校验
 	name.Validator = func(in string) error {
 		if in == "" {
-			return errors.New("Project name is required")
+			return errors.New("project name is required")
 		}
 		return nil
 	}
 	var dir *widget.Button
+	// 选择项目目录
 	dir = widget.NewButton(chosen.Name(), func() {
 		d := dialog.NewFolderOpen(func(l fyne.ListableURI, err error) {
 			if err != nil || l == nil {
@@ -91,16 +95,18 @@ func (g *gui) makeCreateDetail(wizard *dialogs.Wizard) fyne.CanvasObject {
 		d.Show()
 	})
 
+	// 创建项目表单
 	form := widget.NewForm(
 		widget.NewFormItem("Name", name),
 		widget.NewFormItem("Parent Directory", dir),
 	)
+	// 表单提交
 	form.OnSubmit = func() {
 		if name.Text == "" {
 			return
 		}
 
-		// TODO - set up project
+		// 创建项目
 		project, err := createProject(name.Text, chosen)
 		if err != nil {
 			dialog.ShowError(err, g.win)
