@@ -21,17 +21,32 @@ type gui struct {
 	title binding.String
 }
 
-func makeBanner() fyne.CanvasObject {
-	toolbar := widget.NewToolbar(
-		widget.NewToolbarAction(theme.HomeIcon(), func() {}),
-	)
+func (g *gui) makeBanner() fyne.CanvasObject {
+	title := canvas.NewText("app Creator", theme.Color(theme.ColorNameForeground))
+	title.TextSize = 14
+	title.TextStyle = fyne.TextStyle{Bold: true}
+
+	g.title.AddListener(binding.NewDataListener(func() {
+		name, _ := g.title.Get()
+		if name == "" {
+			name = "App Creator"
+		}
+		title.Text = name
+		title.Refresh()
+	}))
+
+	home := widget.NewButtonWithIcon("", theme.HomeIcon(), func() {
+
+	})
+	left := container.NewHBox(home, title)
+
 	logo := canvas.NewImageFromResource(resourceIconPng)
 	logo.FillMode = canvas.ImageFillContain
-	return container.NewStack(toolbar, container.NewPadded(logo))
+	return container.NewStack(container.NewPadded(left), container.NewPadded(logo))
 }
 
 func (g *gui) makeGUI() fyne.CanvasObject {
-	top := makeBanner()
+	top := g.makeBanner()
 	left := widget.NewLabel("Left")
 	right := widget.NewLabel("Right")
 
