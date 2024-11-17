@@ -51,6 +51,7 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 	right := widget.NewLabel("Right")
 
 	directory := widget.NewLabelWithData(g.title)
+	// 中间区域用灰色背景来区分
 	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), directory)
 	// return container.NewBorder(makeBanner(), nil, left, right, content)
 	dividers := [3]fyne.CanvasObject{
