@@ -19,6 +19,8 @@ import (
 type gui struct {
 	win   fyne.Window
 	title binding.String
+
+	fileTree binding.URITree
 }
 
 func (g *gui) makeBanner() fyne.CanvasObject {
@@ -47,24 +49,34 @@ func (g *gui) makeBanner() fyne.CanvasObject {
 
 func (g *gui) makeGUI() fyne.CanvasObject {
 	top := g.makeBanner()
-    files := widget.NewTreeWithData(treeData, func(branch bool) fyne.CanvasObject {
-        return widget.NewLabel("filename.jpg")
-    }, func(data binding.DataItem, branch bool, obj fyne.CanvasObject){
-        l := obj.(*widget.Label)
-        data.Get()
+	g.fileTree = binding.NewURITree()
+	files := widget.NewTreeWithData(g.fileTree, func(branch bool) fyne.CanvasObject {
+		return widget.NewLabel("filename.jpg")
+	}, func(data binding.DataItem, branch bool, obj fyne.CanvasObject) {
+		l := obj.(*widget.Label)
+		u, _ := data.(binding.URI).Get()
 
-        l.GetText()
-    })
+		name := u.Name()
+		l.SetText(name)
+	})
 	left := widget.NewAccordion(
 		widget.NewAccordionItem("Files", files),
 		widget.NewAccordionItem("Screens", widget.NewLabel("TODO screens")),
 	)
+	// 左侧区域默认打开
+	left.Open(0)
 	right := widget.NewLabel("Right")
 
-	directory := widget.NewLabelWithData(g.title)
+	name, _ := g.title.Get()
+	window := container.NewInnerWindow(name,
+		widget.NewLabel("App Preview"),
+	)
+	picker := widget.NewSelect([]string{"Desktop", "iPhone 15"}, func(string) {})
+	preview := container.NewBorder(container.NewHBox(picker), nil, nil, nil, container.NewCenter(window))
+
 	// 中间区域用灰色背景来区分
-	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), directory)
-	// return container.NewBorder(makeBanner(), nil, left, right, content)
+	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), preview)
+	// 各区域的分隔线
 	dividers := [3]fyne.CanvasObject{
 		widget.NewSeparator(),
 		widget.NewSeparator(),
@@ -85,12 +97,6 @@ func (g *gui) openProjectDialog() {
 		}
 		g.openProject(dir)
 	}, g.win)
-}
-
-// 打开项目
-func (g *gui) openProject(dir fyne.ListableURI) {
-	name := dir.Name()
-	g.title.Set(name)
 }
 
 // 创建项目
