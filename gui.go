@@ -47,7 +47,10 @@ func (g *gui) makeBanner() fyne.CanvasObject {
 
 func (g *gui) makeGUI() fyne.CanvasObject {
 	top := g.makeBanner()
-	left := widget.NewLabel("Left")
+	left := widget.NewAccordion(
+		widget.NewAccordionItem("Files", files),
+		widget.NewAccordionItem("Screens", widget.NewLabel("TODO screens")),
+	)
 	right := widget.NewLabel("Right")
 
 	directory := widget.NewLabelWithData(g.title)
