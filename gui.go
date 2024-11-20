@@ -47,6 +47,14 @@ func (g *gui) makeBanner() fyne.CanvasObject {
 
 func (g *gui) makeGUI() fyne.CanvasObject {
 	top := g.makeBanner()
+    files := widget.NewTreeWithData(treeData, func(branch bool) fyne.CanvasObject {
+        return widget.NewLabel("filename.jpg")
+    }, func(data binding.DataItem, branch bool, obj fyne.CanvasObject){
+        l := obj.(*widget.Label)
+        data.Get()
+
+        l.GetText()
+    })
 	left := widget.NewAccordion(
 		widget.NewAccordionItem("Files", files),
 		widget.NewAccordionItem("Screens", widget.NewLabel("TODO screens")),
