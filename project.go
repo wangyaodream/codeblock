@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/data/binding"
@@ -43,10 +44,26 @@ func (g *gui) openProject(dir fyne.ListableURI) {
 
 	// 当在已打开的项目状态下再次打开项目需要重置文件树
 	g.fileTree.Set(map[string][]string{}, map[string]fyne.URI{})
+    addFilesToTree(dir, g.fileTree, binding.DataTreeRootID)
 
+}
+
+func addFilesToTree(dir fyne.ListableURI, tree binding.URITree, root string) {
 	items, _ := dir.List()
 	for _, uri := range items {
-		// TODO handle directories
-		g.fileTree.Append(binding.DataTreeRootID, uri.String(), uri)
+
+        nodeID := uri.String()
+		tree.Append(root, nodeID, uri)
+
+        // 判断是否可以列出
+        isDir, err := storage.CanList(uri)
+        if err != nil {
+            log.Println("Faied to check for listing")
+        }
+
+        if isDir {
+            childdir, _ := storage.ListerForURI(uri)
+            addFilesToTree(childdir, tree, nodeID)
+        }
 	}
 }

@@ -65,17 +65,25 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 	)
 	// 左侧区域默认打开
 	left.Open(0)
-	right := widget.NewLabel("Right")
+    // 左侧区域可以同时打开多个
+    left.MultiOpen = true
+
+	right := widget.NewRichTextFromMarkdown("## Settings")
 
 	name, _ := g.title.Get()
 	window := container.NewInnerWindow(name,
 		widget.NewLabel("App Preview"),
 	)
+    window.CloseIntercept = func() {
+        // do something when innerwindow close
+    }
 	picker := widget.NewSelect([]string{"Desktop", "iPhone 15"}, func(string) {})
+    picker.Selected = "Desktop"
 	preview := container.NewBorder(container.NewHBox(picker), nil, nil, nil, container.NewCenter(window))
 
-	// 中间区域用灰色背景来区分
-	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), preview)
+	// 中间区域用灰色背景来区分，并增加padding
+	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), container.NewPadded(preview))
+
 	// 各区域的分隔线
 	dividers := [3]fyne.CanvasObject{
 		widget.NewSeparator(),
