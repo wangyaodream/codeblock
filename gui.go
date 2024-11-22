@@ -14,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/wangyaodream/codeblock/internal/dialogs"
+	"github.com/wangyaodream/codeblock/internal/editors"
 )
 
 type gui struct {
@@ -21,6 +22,7 @@ type gui struct {
 	title binding.String
 
 	fileTree binding.URITree
+	content  *fyne.Container
 }
 
 func (g *gui) makeBanner() fyne.CanvasObject {
@@ -59,14 +61,26 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 		name := u.Name()
 		l.SetText(name)
 	})
+	files.OnSelected = func(id widget.TreeNodeID) {
+		// 获取选中的文件
+		u, err := g.fileTree.GetValue(id)
+		if err != nil {
+			// 通过dialog显示错误信息
+			dialog.ShowError(err, g.win)
+			return
+		}
+		// 打开文件
+		g.openFile(u)
+	}
+
 	left := widget.NewAccordion(
 		widget.NewAccordionItem("Files", files),
 		widget.NewAccordionItem("Screens", widget.NewLabel("TODO screens")),
 	)
 	// 左侧区域默认打开
 	left.Open(0)
-    // 左侧区域可以同时打开多个
-    left.MultiOpen = true
+	// 左侧区域可以同时打开多个
+	left.MultiOpen = true
 
 	right := widget.NewRichTextFromMarkdown("## Settings")
 
@@ -74,15 +88,15 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 	window := container.NewInnerWindow(name,
 		widget.NewLabel("App Preview"),
 	)
-    window.CloseIntercept = func() {
-        // do something when innerwindow close
-    }
+	window.CloseIntercept = func() {
+		// do something when innerwindow close
+	}
 	picker := widget.NewSelect([]string{"Desktop", "iPhone 15"}, func(string) {})
-    picker.Selected = "Desktop"
+	picker.Selected = "Desktop"
 	preview := container.NewBorder(container.NewHBox(picker), nil, nil, nil, container.NewCenter(window))
 
 	// 中间区域用灰色背景来区分，并增加padding
-	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), container.NewPadded(preview))
+	g.content = container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), container.NewPadded(preview))
 
 	// 各区域的分隔线
 	dividers := [3]fyne.CanvasObject{
@@ -90,8 +104,8 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 		widget.NewSeparator(),
 		widget.NewSeparator(),
 	}
-	objs := []fyne.CanvasObject{content, top, left, right, dividers[0], dividers[1], dividers[2]}
-	return container.New(newFysionLayout(top, left, right, content, dividers), objs...)
+	objs := []fyne.CanvasObject{g.content, top, left, right, dividers[0], dividers[1], dividers[2]}
+	return container.New(newFysionLayout(top, left, right, g.content, dividers), objs...)
 }
 
 func (g *gui) openProjectDialog() {
@@ -180,4 +194,16 @@ Or open an existing project.`)
 	wizard = dialogs.NewWizard("create project", home)
 	wizard.Show(win)
 	wizard.Resize(home.MinSize().AddWidthHeight(80, 80))
+}
+
+func (g *gui) openFile(uri fyne.URI) {
+	listable, err := storage.CanList(uri)
+	if listable || err != nil {
+		// TODO should we unselect this item
+		return
+	}
+	// 打开文件
+	editor := editors.ForURI(uri)
+	g.content.Objects = []fyne.CanvasObject{editor}
+	g.content.Refresh()
 }
