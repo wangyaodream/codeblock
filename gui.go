@@ -22,7 +22,9 @@ type gui struct {
 	title binding.String
 
 	fileTree binding.URITree
-	content  *fyne.Container
+	// content  *fyne.Container
+	content  *container.DocTabs // 文档标签
+	openTabs map[fyne.URI]*container.TabItem
 }
 
 func (g *gui) makeBanner() fyne.CanvasObject {
@@ -89,14 +91,35 @@ func (g *gui) makeGUI() fyne.CanvasObject {
 		widget.NewLabel("App Preview"),
 	)
 	window.CloseIntercept = func() {
-		// do something when innerwindow close
+		// 关闭窗口时可以做点事
 	}
 	picker := widget.NewSelect([]string{"Desktop", "iPhone 15"}, func(string) {})
 	picker.Selected = "Desktop"
 	preview := container.NewBorder(container.NewHBox(picker), nil, nil, nil, container.NewCenter(window))
 
 	// 中间区域用灰色背景来区分，并增加padding
-	g.content = container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), container.NewPadded(preview))
+	content := container.NewStack(canvas.NewRectangle(color.Gray{Y: 0xee}), container.NewPadded(preview))
+
+	// 利用文档标签来切换预览和设置，而不是每次都重新创建
+	g.content = container.NewDocTabs(
+		container.NewTabItem("Preview", content),
+	)
+
+	// 关闭文档标签时，删除对应的打开文件
+	g.content.CloseIntercept = func(item *container.TabItem) {
+		var u fyne.URI
+		for child, childItem := range g.openTabs {
+			if childItem == item {
+				u = child
+			}
+		}
+		if u != nil {
+			delete(g.openTabs, u)
+		}
+
+		// 最终关闭文档标签
+		g.content.Remove(item)
+	}
 
 	// 各区域的分隔线
 	dividers := [3]fyne.CanvasObject{
@@ -202,8 +225,24 @@ func (g *gui) openFile(uri fyne.URI) {
 		// TODO should we unselect this item
 		return
 	}
+	// 判断是否已经打开
+
+	if item, ok := g.openTabs[uri]; ok {
+		g.content.Select(item)
+		return
+	}
 	// 打开文件
 	editor := editors.ForURI(uri)
-	g.content.Objects = []fyne.CanvasObject{editor}
-	g.content.Refresh()
+
+	item := container.NewTabItem(uri.Name(), editor)
+	// 如果没有打开文件列表，初始化
+	if g.openTabs == nil {
+		g.openTabs = make(map[fyne.URI]*container.TabItem)
+	}
+	// 新打开的文件加入到打开文件列表
+	g.openTabs[uri] = item
+	g.content.Append(item)
+	// 当打开文件时，将当前选中的文档标签切换到新打开的文件
+	g.content.Select(item)
+
 }
