@@ -9,7 +9,9 @@ import (
 )
 
 var extensions = map[string]func(fyne.URI) fyne.CanvasObject{
-	".go": makeGo,
+	".go":  makeGo,
+	".txt": makeTxt,
+	".md":  makeTxt,
 }
 
 func ForURI(u fyne.URI) fyne.CanvasObject {
@@ -23,9 +25,14 @@ func ForURI(u fyne.URI) fyne.CanvasObject {
 }
 
 func makeGo(u fyne.URI) fyne.CanvasObject {
-	// TODO code editor
+	code := makeTxt(u)
+	code.(*widget.Entry).TextStyle = fyne.TextStyle{Monospace: true}
+
+	return code
+}
+
+func makeTxt(u fyne.URI) fyne.CanvasObject {
 	code := widget.NewEntry()
-	code.TextStyle = fyne.TextStyle{Monospace: true}
 
 	r, err := storage.Reader(u)
 	if err != nil {
@@ -35,7 +42,6 @@ func makeGo(u fyne.URI) fyne.CanvasObject {
 
 	defer r.Close()
 
-	io.ReadAll(r)
 	data, _ := io.ReadAll(r)
 	code.SetText(string(data))
 	return code
